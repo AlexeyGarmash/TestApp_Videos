@@ -41,19 +41,11 @@ class MainActivity : AppCompatActivity() {
         setupToolbar()
         setupOnBackPressed()
         setupShareViewModel()
+        setupNavigationListener()
         videosViewModel.getVideos()
     }
 
-    private fun setupShareViewModel() {
-        shareDataViewModel.liveDataSelectedVideoPosition.observe(this) {
-            binding.toolbar.title = shareDataViewModel.liveDataVideoPlaylist.value?.get(it)?.name
-        }
-    }
-
-    private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
-        val navConfig = AppBarConfiguration(navController.graph)
-        binding.toolbar.setupWithNavController(navController, navConfig)
+    private fun setupNavigationListener() {
         navController.addOnDestinationChangedListener { controller, destination, args ->
             when(destination.id) {
                 R.id.videoPlayerFragment -> {
@@ -69,6 +61,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun setupShareViewModel() {
+        shareDataViewModel.liveDataSelectedVideoPosition.observe(this) {
+            binding.toolbar.title = shareDataViewModel.liveDataVideoPlaylist.value?.get(it)?.name
+        }
+    }
+
+    private fun setupToolbar() {
+        setSupportActionBar(binding.toolbar)
+        val navConfig = AppBarConfiguration(navController.graph)
+        binding.toolbar.setupWithNavController(navController, navConfig)
     }
 
     private fun setupOnBackPressed() {
