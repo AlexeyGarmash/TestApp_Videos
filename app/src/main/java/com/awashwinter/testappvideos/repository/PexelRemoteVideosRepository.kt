@@ -17,8 +17,9 @@ class PexelRemoteVideosRepository @Inject constructor(
         if(videosResponse.isSuccessful) {
             if(videosResponse.body() != null) {
                 for(responseVideoItem in videosResponse.body()!!.videos) {
+                    val videoUrl = responseVideoItem.videoFiles.first().link
                     val videoItem = VideoItem(
-                        responseVideoItem.id?.toLong(), responseVideoItem.url, "Video #${responseVideoItem.id}", responseVideoItem.image
+                        responseVideoItem.id?.toLong(), videoUrl, "Video #${responseVideoItem.id}", responseVideoItem.image
                     )
                     cachedVideosRepository.addVideoInfoToCache(videoItem)
                     resultsVideos.add(videoItem)
