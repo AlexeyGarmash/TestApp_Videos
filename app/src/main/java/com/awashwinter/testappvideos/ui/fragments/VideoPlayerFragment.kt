@@ -2,23 +2,23 @@ package com.awashwinter.testappvideos.ui.fragments
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.OptIn
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.ui.PlayerView.ControllerVisibilityListener
 import com.awashwinter.testappvideos.databinding.FragmentVideoPlayerBinding
+import com.awashwinter.testappvideos.viewmodels.PlayerViewModel
 import com.awashwinter.testappvideos.viewmodels.ShareViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -30,9 +30,9 @@ class VideoPlayerFragment : Fragment() {
     }
 
     private val shareDataViewModel: ShareViewModel by activityViewModels<ShareViewModel>()
+    private val playerViewModel: PlayerViewModel by viewModels<PlayerViewModel>()
     private lateinit var binding: FragmentVideoPlayerBinding
     private var player: ExoPlayer? = null
-    private val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,22 +51,63 @@ class VideoPlayerFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initPlayer()
+        initPLayerControls()
         initPlayList()
+    }
+
+    private fun initPLayerControls() = with(binding) {
+        btnNext.setOnClickListener {
+            seekPlayNext()
+        }
+
+        btnPrev.setOnClickListener {
+            seekPlayPrev()
+        }
+
+        btnPlayPause.setOnClickListener {
+            player?.isPlaying?.let {
+                if (it) {
+                    pause()
+                } else {
+                    play()
+                }
+            }
+        }
+
+        playerView.setControllerVisibilityListener(ControllerVisibilityListener {
+            setControllerVisibility(it)
+        })
+    }
+
+    private fun setControllerVisibility(visibility: Int) = with(binding) {
+        centerController.visibility = visibility
+    }
+
+    private fun seekPlayPrev() {
+        player?.seekToPreviousMediaItem()
+        shareDataViewModel.setPrevVideo()
+    }
+
+    private fun seekPlayNext() {
+        player?.seekToNextMediaItem()
+        shareDataViewModel.setNextVideo()
     }
 
     @OptIn(UnstableApi::class)
     private fun initPlayList() {
         shareDataViewModel.liveDataVideoPlaylist.observe(viewLifecycleOwner) { videos ->
+            player?.clearMediaItems()
             for (videoItem in videos) {
-                val source = videoItem.url?.let { videoUrl -> getProgressiveMediaSource(videoUrl) }
-                if (source != null) {
-                    player?.addMediaItem(source.mediaItem)
+                player?.addMediaItem(MediaItem.fromUri(Uri.parse(videoItem.url)))
+            }
+            shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
+                playerViewModel.liveDataCurrentVideoDuration.value?.let { duration ->
+                    Log.d("Duration", "Restored duration: $duration")
+                    player?.seekTo(it,
+                        duration
+                    )
                 }
             }
-        }
-
-        shareDataViewModel.liveDataSelectedVideoPosition.observe(viewLifecycleOwner) {
-            player?.seekToDefaultPosition(it)
             player?.prepare()
         }
     }
@@ -74,6 +115,7 @@ class VideoPlayerFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         pause()
+        playerViewModel.setCurrentDuration(player?.currentPosition)
     }
 
     override fun onResume() {
@@ -94,13 +136,6 @@ class VideoPlayerFragment : Fragment() {
             .apply {
                 addListener(playerListener)
             }
-    }
-
-
-    @androidx.annotation.OptIn(UnstableApi::class)
-    private fun getProgressiveMediaSource(videoUrl: String): MediaSource {
-        return ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(Uri.parse(videoUrl)))
     }
 
     private fun releasePlayer() {
@@ -124,6 +159,14 @@ class VideoPlayerFragment : Fragment() {
         player?.playWhenReady = true
     }
 
+    private fun animatePlayBtn(isPlaying: Boolean) {
+        if(isPlaying) {
+            binding.btnPlayPause.setImageResource(androidx.media3.session.R.drawable.media3_icon_pause)
+        } else {
+            binding.btnPlayPause.setImageResource(androidx.media3.session.R.drawable.media3_icon_play)
+        }
+    }
+
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             super.onPlaybackStateChanged(playbackState)
@@ -134,6 +177,11 @@ class VideoPlayerFragment : Fragment() {
                     play()
                 }
             }
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            super.onIsPlayingChanged(isPlaying)
+            animatePlayBtn(isPlaying)
         }
     }
 }

@@ -12,6 +12,7 @@ import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
 import com.awashwinter.testappvideos.R
 import com.awashwinter.testappvideos.databinding.ActivityMainBinding
@@ -46,17 +47,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupNavigationListener() {
+
         navController.addOnDestinationChangedListener { controller, destination, args ->
+
             when(destination.id) {
                 R.id.videoPlayerFragment -> {
-                    binding.toolbar.title = shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
-                        shareDataViewModel.liveDataVideoPlaylist.value?.get(
-                            it
-                        )?.name
-                    }
+                    Log.d("MainActivity", "Current destination: R.id.videoPlayerFragment ${shareDataViewModel.currentMediaData?.name}")
+                    binding.toolbar.title = shareDataViewModel.currentMediaData?.name
                 }
 
                 R.id.listVideosFragment -> {
+                    Log.d("MainActivity", "Current destination: R.id.listVideosFragment")
                     binding.toolbar.title = getString(R.string.app_name)
                 }
             }
@@ -65,14 +66,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupShareViewModel() {
         shareDataViewModel.liveDataSelectedVideoPosition.observe(this) {
-            binding.toolbar.title = shareDataViewModel.liveDataVideoPlaylist.value?.get(it)?.name
+            binding.toolbar.title = shareDataViewModel.currentMediaData?.name
         }
     }
 
     private fun setupToolbar() {
         setSupportActionBar(binding.toolbar)
         val navConfig = AppBarConfiguration(navController.graph)
+        setupActionBarWithNavController(navController, navConfig)
         binding.toolbar.setupWithNavController(navController, navConfig)
+        binding.toolbar.title = shareDataViewModel.currentMediaData?.name
     }
 
     private fun setupOnBackPressed() {

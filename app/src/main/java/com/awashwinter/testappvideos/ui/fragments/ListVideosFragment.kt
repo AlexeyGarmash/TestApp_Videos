@@ -75,6 +75,7 @@ class ListVideosFragment : Fragment() {
                         Log.d("liveDataVideos", "liveDataVideos: ${it.data}")
                         videosAdapter?.updateVideos(videos)
                         videosAdapter?.videos?.let { vidItems -> shareDataViewModel.setPlaylist(vidItems) }
+                        binding.rvVideos.scrollToPosition(0)
                     }
                 }
 
