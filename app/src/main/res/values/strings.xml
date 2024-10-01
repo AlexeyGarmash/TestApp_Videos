@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TestApp_Videos</string>
+    <string name="iv_preview_content_description">preview</string>
 </resources>

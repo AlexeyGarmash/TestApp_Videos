@@ -1,5 +1,6 @@
 package com.awashwinter.testappvideos.ui.adapters
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.awashwinter.testappvideos.databinding.ItemVideoBinding
 import com.awashwinter.testappvideos.models.VideoItem
+import com.bumptech.glide.Glide
 
 class VideosAdapter : RecyclerView.Adapter<VideosAdapter.VideoViewHolder>() {
 
@@ -15,11 +17,12 @@ class VideosAdapter : RecyclerView.Adapter<VideosAdapter.VideoViewHolder>() {
 
     val videos get() : List<VideoItem> = videoItems
 
-    inner class VideoViewHolder(private val binding : ItemVideoBinding) : ViewHolder(binding.root) {
+    inner class VideoViewHolder(private val binding: ItemVideoBinding) : ViewHolder(binding.root) {
 
         fun bind(videoItem: VideoItem, position: Int) {
             binding.tvVideoName.text = videoItem.name
             binding.tvVideoUrl.text = videoItem.url
+            Glide.with(binding.ivPreview).load(videoItem.imagePreviewUrl).into(binding.ivPreview)
             binding.cardItem.setOnClickListener {
                 onItemClickListener?.invoke(videoItem, position)
             }

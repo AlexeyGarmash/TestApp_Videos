@@ -13,13 +13,28 @@
         android:layout_height="match_parent"
         android:padding="8dp">
 
+        <ImageView
+            android:id="@+id/ivPreview"
+            android:layout_width="120dp"
+            android:layout_height="70dp"
+            android:scaleType="fitXY"
+            android:contentDescription="@string/iv_preview_content_description"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0"/>
+
         <TextView
             android:id="@+id/tvVideoName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintStart_toEndOf="@+id/ivPreview"
+            app:layout_constraintTop_toTopOf="@+id/ivPreview"
+            android:layout_marginStart="8dp"
+            android:maxLines="1"
+            android:ellipsize="marquee"
+            />
 
         <TextView
             android:id="@+id/tvVideoUrl"
@@ -28,7 +43,8 @@
             android:layout_marginTop="16dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvVideoName" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
