@@ -12,12 +12,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Player.RepeatMode
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView.ControllerVisibilityListener
 import com.awashwinter.testappvideos.databinding.FragmentVideoPlayerBinding
+import com.awashwinter.testappvideos.models.VideoItem
 import com.awashwinter.testappvideos.viewmodels.PlayerViewModel
 import com.awashwinter.testappvideos.viewmodels.ShareViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,6 +57,33 @@ class VideoPlayerFragment : Fragment() {
         initPlayList()
     }
 
+    override fun onPause() {
+        super.onPause()
+        pause()
+        playerViewModel.setCurrentDuration(player?.currentPosition)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        play()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releasePlayer()
+    }
+
+    @UnstableApi
+    private fun initPlayer() {
+        player = ExoPlayer.Builder(requireContext())
+            .setPauseAtEndOfMediaItems(true)
+            .build()
+            .apply {
+                addListener(playerListener)
+                repeatMode = Player.REPEAT_MODE_ONE
+            }
+    }
+
     private fun initPLayerControls() = with(binding) {
         btnNext.setOnClickListener {
             seekPlayNext()
@@ -79,6 +108,30 @@ class VideoPlayerFragment : Fragment() {
         })
     }
 
+    @OptIn(UnstableApi::class)
+    private fun initPlayList() {
+        shareDataViewModel.liveDataVideoPlaylist.observe(viewLifecycleOwner) { videos ->
+            Log.d("playlist", "playlistUpdated")
+            setupPlaylist(videos)
+        }
+    }
+
+    private fun setupPlaylist(videos: List<VideoItem>) {
+        player?.clearMediaItems()
+        for (videoItem in videos) {
+            player?.addMediaItem(MediaItem.fromUri(Uri.parse(videoItem.url)))
+        }
+        shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
+            playerViewModel.liveDataCurrentVideoDuration.value?.let { duration ->
+                Log.d("Duration", "Restored duration: $duration   Seek to item: $it")
+                player?.seekTo(it,
+                    duration
+                )
+            }
+        }
+        player?.prepare()
+    }
+
     private fun setControllerVisibility(visibility: Int) = with(binding) {
         centerController.visibility = visibility
     }
@@ -91,51 +144,6 @@ class VideoPlayerFragment : Fragment() {
     private fun seekPlayNext() {
         player?.seekToNextMediaItem()
         shareDataViewModel.setNextVideo()
-    }
-
-    @OptIn(UnstableApi::class)
-    private fun initPlayList() {
-        shareDataViewModel.liveDataVideoPlaylist.observe(viewLifecycleOwner) { videos ->
-            player?.clearMediaItems()
-            for (videoItem in videos) {
-                player?.addMediaItem(MediaItem.fromUri(Uri.parse(videoItem.url)))
-            }
-            shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
-                playerViewModel.liveDataCurrentVideoDuration.value?.let { duration ->
-                    Log.d("Duration", "Restored duration: $duration")
-                    player?.seekTo(it,
-                        duration
-                    )
-                }
-            }
-            player?.prepare()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        pause()
-        playerViewModel.setCurrentDuration(player?.currentPosition)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        play()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        releasePlayer()
-    }
-
-    @UnstableApi
-    private fun initPlayer() {
-        player = ExoPlayer.Builder(requireContext())
-            .setPauseAtEndOfMediaItems(true)
-            .build()
-            .apply {
-                addListener(playerListener)
-            }
     }
 
     private fun releasePlayer() {
@@ -183,5 +191,6 @@ class VideoPlayerFragment : Fragment() {
             super.onIsPlayingChanged(isPlaying)
             animatePlayBtn(isPlaying)
         }
+
     }
 }

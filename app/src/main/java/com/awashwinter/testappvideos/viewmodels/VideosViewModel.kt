@@ -10,7 +10,9 @@ import com.awashwinter.testappvideos.models.VideoItem
 import com.awashwinter.testappvideos.utils.TaskResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,15 +29,11 @@ class VideosViewModel @Inject constructor(private val videosDataSource: VideosDa
         viewModelScope.launch {
             val videosResult = videosDataSource.getLocalVideos()
             Log.d("[VideosViewModel]", "Videos LOCAL result: " + videosResult.data.toString())
-            with(Dispatchers.Main) {
-                mutableVideos.value = videosResult
-            }
+            mutableVideos.postValue(videosResult)
             val videosResultRmt = videosDataSource.getRemoteVideos()
             Log.d("[VideosViewModel]", "Videos REMOTE result: " + videosResultRmt.data.toString())
-            with(Dispatchers.Main) {
-                mutableLoading.value = false
-                mutableVideos.value = videosResultRmt
-            }
+            mutableLoading.postValue(false)
+            mutableVideos.postValue(videosResultRmt)
         }
     }
 }
