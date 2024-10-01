@@ -111,25 +111,26 @@ class VideoPlayerFragment : Fragment() {
     @OptIn(UnstableApi::class)
     private fun initPlayList() {
         shareDataViewModel.liveDataVideoPlaylist.observe(viewLifecycleOwner) { videos ->
-            Log.d("playlist", "playlistUpdated")
+            Log.d("videos", "videosUpdated")
             setupPlaylist(videos)
+        }
+        playerViewModel.liveDataPlayerPlaylist.observe(viewLifecycleOwner) {
+            Log.d("playlist", "playlistUpdated")
+            player?.setMediaItems(it)
+            shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
+                playerViewModel.liveDataCurrentVideoDuration.value?.let { duration ->
+                    Log.d("Duration", "Restored duration: $duration   Seek to item: $it")
+                    player?.seekTo(it,
+                        duration
+                    )
+                }
+            }
+            player?.prepare()
         }
     }
 
     private fun setupPlaylist(videos: List<VideoItem>) {
-        player?.clearMediaItems()
-        for (videoItem in videos) {
-            player?.addMediaItem(MediaItem.fromUri(Uri.parse(videoItem.url)))
-        }
-        shareDataViewModel.liveDataSelectedVideoPosition.value?.let {
-            playerViewModel.liveDataCurrentVideoDuration.value?.let { duration ->
-                Log.d("Duration", "Restored duration: $duration   Seek to item: $it")
-                player?.seekTo(it,
-                    duration
-                )
-            }
-        }
-        player?.prepare()
+        playerViewModel.generateMediaPlaylist(videos)
     }
 
     private fun setControllerVisibility(visibility: Int) = with(binding) {

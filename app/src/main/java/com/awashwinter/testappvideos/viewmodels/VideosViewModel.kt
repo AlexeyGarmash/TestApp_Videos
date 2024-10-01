@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.awashwinter.testappvideos.data.VideosDataSource
 import com.awashwinter.testappvideos.models.VideoItem
+import com.awashwinter.testappvideos.utils.DataLoadingState
 import com.awashwinter.testappvideos.utils.TaskResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -19,20 +20,21 @@ import javax.inject.Inject
 class VideosViewModel @Inject constructor(private val videosDataSource: VideosDataSource): ViewModel() {
 
     private val mutableVideos = MutableLiveData<TaskResult<List<VideoItem>>>()
-    private val mutableLoading = MutableLiveData<Boolean>()
+    private val mutableLoading = MutableLiveData<DataLoadingState>()
 
     val liveDataVideos get() : LiveData<TaskResult<List<VideoItem>>> = mutableVideos
-    val liveDataLoading get(): LiveData<Boolean> = mutableLoading
+    val liveDataLoading get(): LiveData<DataLoadingState> = mutableLoading
 
     fun getVideos() {
-        mutableLoading.value = true
+        mutableLoading.value = DataLoadingState.LocalLoading
         viewModelScope.launch {
             val videosResult = videosDataSource.getLocalVideos()
             Log.d("[VideosViewModel]", "Videos LOCAL result: " + videosResult.data.toString())
             mutableVideos.postValue(videosResult)
+            mutableLoading.postValue(DataLoadingState.RemoteLoading)
             val videosResultRmt = videosDataSource.getRemoteVideos()
             Log.d("[VideosViewModel]", "Videos REMOTE result: " + videosResultRmt.data.toString())
-            mutableLoading.postValue(false)
+            mutableLoading.postValue(DataLoadingState.Complete)
             mutableVideos.postValue(videosResultRmt)
         }
     }

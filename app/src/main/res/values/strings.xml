@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">TestApp_Videos</string>
     <string name="iv_preview_content_description">preview</string>
+    <string name="loading_local">Loading cache...</string>
+    <string name="loading_remote">Connecting...</string>
 </resources>

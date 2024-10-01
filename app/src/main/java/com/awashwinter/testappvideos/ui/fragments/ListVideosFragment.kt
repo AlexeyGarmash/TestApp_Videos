@@ -14,6 +14,7 @@ import com.awashwinter.testappvideos.R
 import com.awashwinter.testappvideos.databinding.FragmentListVideosBinding
 import com.awashwinter.testappvideos.ui.adapters.VideosAdapter
 import com.awashwinter.testappvideos.ui.decorations.VerticalMarginItemDecorator
+import com.awashwinter.testappvideos.utils.DataLoadingState
 import com.awashwinter.testappvideos.utils.TaskResult
 import com.awashwinter.testappvideos.viewmodels.ShareViewModel
 import com.awashwinter.testappvideos.viewmodels.VideosViewModel
@@ -63,7 +64,7 @@ class ListVideosFragment : Fragment() {
         binding.rvVideos.adapter = videosAdapter
         binding.rvVideos.layoutManager =
             LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-        binding.rvVideos.addItemDecoration(VerticalMarginItemDecorator(5))
+        binding.rvVideos.addItemDecoration(VerticalMarginItemDecorator(12))
     }
 
     private fun setupVideoViewModel() {
@@ -94,8 +95,22 @@ class ListVideosFragment : Fragment() {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showLoading(showLoading: Boolean) {
-        Log.d("Loading", "Is loading: $showLoading")
+    private fun showLoading(loadingState: DataLoadingState) = with(binding) {
+        when(loadingState) {
+            DataLoadingState.LocalLoading -> {
+                progressLoading.visibility = View.VISIBLE
+                tvLoadingStatus.text = getString(R.string.loading_local)
+            }
+            DataLoadingState.Complete -> {
+                progressLoading.visibility = View.GONE
+                tvLoadingStatus.visibility = View.GONE
+            }
+
+            DataLoadingState.RemoteLoading -> {
+                progressLoading.visibility = View.VISIBLE
+                tvLoadingStatus.text = getString(R.string.loading_remote)
+            }
+        }
     }
 
 }
