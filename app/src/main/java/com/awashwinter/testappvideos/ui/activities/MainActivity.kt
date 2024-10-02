@@ -23,6 +23,8 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private final val TAG = "[MainActivity]"
+
     private val videosViewModel: VideosViewModel by viewModels<VideosViewModel>()
     private val shareDataViewModel: ShareViewModel by viewModels<ShareViewModel>()
     private lateinit var binding: ActivityMainBinding
@@ -52,12 +54,10 @@ class MainActivity : AppCompatActivity() {
 
             when(destination.id) {
                 R.id.videoPlayerFragment -> {
-                    Log.d("MainActivity", "Current destination: R.id.videoPlayerFragment ${shareDataViewModel.currentMediaData?.name}")
                     binding.toolbar.title = shareDataViewModel.currentMediaData?.name
                 }
 
                 R.id.listVideosFragment -> {
-                    Log.d("MainActivity", "Current destination: R.id.listVideosFragment")
                     binding.toolbar.title = getString(R.string.app_name)
                 }
             }
@@ -83,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    Log.d("[MainActivity]", "Activity back pressed.")
+                    Log.d(TAG, "Activity back pressed.")
                     // Do custom work here
                     if(!findNavController(R.id.nav_host_fragment).popBackStack()) {
                         isEnabled = false

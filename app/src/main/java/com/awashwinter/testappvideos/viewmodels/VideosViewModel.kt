@@ -29,11 +29,11 @@ class VideosViewModel @Inject constructor(private val videosDataSource: VideosDa
         mutableLoading.value = DataLoadingState.LocalLoading
         viewModelScope.launch {
             val videosResult = videosDataSource.getLocalVideos()
-            Log.d("[VideosViewModel]", "Videos LOCAL result: " + videosResult.data.toString())
+            Log.d("[VideosViewModel]", "Videos LOCAL result: ${videosResult.data}")
             mutableVideos.postValue(videosResult)
             mutableLoading.postValue(DataLoadingState.RemoteLoading)
             val videosResultRmt = videosDataSource.getRemoteVideos()
-            Log.d("[VideosViewModel]", "Videos REMOTE result: " + videosResultRmt.data.toString())
+            Log.d("[VideosViewModel]", "Videos REMOTE result: ${videosResultRmt.data}")
             mutableLoading.postValue(DataLoadingState.Complete)
             mutableVideos.postValue(videosResultRmt)
         }
